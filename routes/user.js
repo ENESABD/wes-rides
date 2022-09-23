@@ -218,7 +218,7 @@ router.get("/email-verification/:token", authorize, async (req, res) => {
 
         //check if user was updated
         if (user.rows.length === 0) {
-            return res.status(400).json("The status was not changed."); //this case should not happen
+            return res.status(400).json({ error: "The status was not changed." }); //this case should not happen
         }
         
         //redirect to a success page
