@@ -4,7 +4,9 @@ const bcrypt = require("bcrypt");
 const pool = require("../db");
 const validUserInfo = require("../middleware/validUserInfo");
 const jwtGenerator = require("../utils/jwtGenerator");
+const tokenSender = require("../utils/tokenSender");
 const authorize = require("../middleware/authorize");
+const authorizePasswordReset = require("../middleware/authorizePasswordReset");
   
 
 router.post("/register", validUserInfo, async (req, res) => {
@@ -59,10 +61,13 @@ router.post("/register", validUserInfo, async (req, res) => {
     newUser = newUser.rows[0];
 
     //generate a jwt
-    const jwToken = jwtGenerator(newUser.user_id);
+    const jwToken = jwtGenerator(newUser.user_id, process.env.jwtSecretExtension);
+
+    //send a verification email
+    tokenSender(email, jwToken, false);
 
     //return jwt
-    return res.status(201).json({ jw_token: jwToken });
+    return res.status(201).json({ message: "A verification link has been emailed." });
   } catch (err) {
     if (err.message === "data must be a string or Buffer and salt must either be a salt string or a number of rounds") {
       return res.status(400).json({ error: "Invalid entry" })
@@ -98,7 +103,10 @@ router.post("/login", validUserInfo, async (req, res) => {
       return res.status(401).json({ error: "Wrong password" });
     }
 
-    
+    //check if the email is confirmed
+    if (!user.confirmed) {
+      return res.status(401).json({ error: "This user has not confirmed their email."})
+    }
 
     //generate a jwt
     const jwToken = jwtGenerator(user.user_id);
@@ -117,6 +125,48 @@ router.get("/verify", authorize, (req, res) => {
     return res.status(200).json(true);
   } catch (err) {
     return res.status(500).send({ error: "Server error" });
+  }
+});
+
+router.get("/verify-reset-page", authorizePasswordReset, (req, res) => {
+  try {
+    //return success status, and true as an indication that the user is logged in
+    return res.status(200).json(true);
+  } catch (err) {
+    return res.status(500).send({ error: "Server error" });
+  }
+});
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    //check if user exists
+    let user = await pool.query("SELECT * FROM users WHERE user_email = $1 ", 
+      [email]
+    );
+
+    if (user.rows.length === 0) {
+      return res.status(401).json({ error: "Email is not registered" });
+    }
+    user = user.rows[0];
+
+    //check if the email is confirmed
+    if (!user.confirmed) {
+      return res.status(401).json({ error: "Email needs to be confirmed before requesting a password reset."})
+    }
+
+    //generate a jwt
+    const jwToken = jwtGenerator(user.user_id, user.user_password);
+
+    //send the password change link
+    tokenSender(email, jwToken, true);
+
+    //return jwt
+    return res.status(200).json({ message: "The password reset link has been emailed." });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(500).json({ error: "Server error 1", also: err.message });
   }
 });
 

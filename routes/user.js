@@ -3,6 +3,7 @@ const authorize = require("../middleware/authorize");
 const validUserInfo = require("../middleware/validUserInfo");
 const pool = require("../db");
 const bcrypt = require("bcrypt");
+const authorizePasswordReset = require("../middleware/authorizePasswordReset");
 
 
 
@@ -120,9 +121,8 @@ router.put("/", [validUserInfo, authorize], async (req, res) => {
 });
 
 
-router.put("/password", authorize, async (req, res) => {
+router.put("/password", [authorize, authorizePasswordReset], async (req, res) => {
     try {
-
 
         //capture entered attributes
         const { old_password, new_password } = req.body;
@@ -186,8 +186,44 @@ router.put("/password", authorize, async (req, res) => {
         }
 
         //return a success status
-
         return res.status(204).send();
+    } catch (err) {
+        return res.status(500).json({ error: "Server error" });
+    }
+});
+
+router.get("/email-verification/:token", authorize, async (req, res) => {
+    try {
+        //check if the user is already verified
+        let verified = await pool.query(
+            "SELECT confirmed FROM users WHERE user_id = $1",
+            [req.user.id]
+        );
+
+        //check if the value is captured
+        if (verified.rows.length === 0) {
+            return res.status(400).json({ error: "Invalid user" }); //shouldn't happen
+        }
+
+        //if the user is already verified, send a message
+        if (verified.rows[0].confirmed) {
+            return res.status(400).json({ error: "This email has already been confirmed!" });
+        }
+
+        //set the confirmation status to true
+        let user = await pool.query(
+            "UPDATE users SET confirmed = TRUE WHERE user_id = $1 RETURNING *",
+            [req.user.id]
+        );
+
+        //check if user was updated
+        if (user.rows.length === 0) {
+            return res.status(400).json("The status was not changed."); //this case should not happen
+        }
+        
+        //redirect to a success page
+        return res.redirect("https://google.com")
+        //return res.status(200).json({ message: "You successfully verified your email!"});
     } catch (err) {
         return res.status(500).json({ error: "Server error" });
     }
