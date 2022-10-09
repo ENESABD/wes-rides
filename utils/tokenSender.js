@@ -1,18 +1,10 @@
-const nodemailer = require('nodemailer');
-require("dotenv").config();
+const emailSender = require('./emailSender');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.PASSWORD
-    }
-});
 
-const domain = 'http://localhost:8000';
 
 function tokenSender(userEmail, token, isPasswordChange) {
 
+    const domain = 'http://localhost:8000';
     let emailText;
     let emailSubject;
 
@@ -32,25 +24,7 @@ function tokenSender(userEmail, token, isPasswordChange) {
         Thanks!`;
     }
 
-
-    const mailConfigurations = {
-
-        from: process.env.EMAIL_USERNAME,
-    
-        to: userEmail,
-    
-        subject: emailSubject,
-        
-        text: emailText
-      
-    };
-
-    transporter.sendMail(mailConfigurations, function(error, info){
-        if (error) {
-            console.log(error);
-        }
-        console.log('Email Sent Successfully');
-    });
+    emailSender(userEmail, emailSubject, emailText)
     
 }
 
