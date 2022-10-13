@@ -281,12 +281,6 @@ router.post("/", [authorize, validRideInfo], async (req, res) => {
         }
 
 
-        //check if all filters are false
-        if (has_car === false && wants_car === false && wants_uber === false) {
-            return res.status(400).json({ error: "At least one filter must be true." });
-        }
-
-
         //create a ride with the current user's ID
         //if additional comments are provided, include them as well
         ride = await pool.query(
@@ -335,8 +329,8 @@ router.put("/:id", [authorize, validRideInfo], async (req, res) => {
             [req.user.id, id]
         );
 
-        const { location: old_location, start_date: old_start_date, 
-                status } = current_ride.rows[0];
+        const { location: old_location, start_date: old_start_date, status,
+                has_car: old_has_car, wants_car: old_wants_car, wants_uber: old_wants_uber} = current_ride.rows[0];
 
 
         //check if it is allowed to edit this ride
@@ -344,6 +338,17 @@ router.put("/:id", [authorize, validRideInfo], async (req, res) => {
             return res.status(400).json({ error: "This ride cannot be edited anymore" });
         }
 
+        
+        //check if updating will make all filters false
+        let filter_list = [
+            typeof(has_car) !== "undefined" ? has_car : old_has_car,
+            typeof(wants_car) !== "undefined" ? wants_car : old_wants_car,
+            typeof(wants_uber) !== "undefined" ? wants_uber : old_wants_uber,
+        ]
+
+        if (filter_list.every(element => element === false)) {
+            return res.status(400).json({ error: "These changes would make all filters false" });
+        }
         
         //check if updating will make this a duplicate ride
         const possible_duplicate = await pool.query(

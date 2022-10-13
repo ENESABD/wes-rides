@@ -28,6 +28,11 @@ module.exports = function(req, res, next) {
             return res.status(400).json({ error: "Filters must have boolean values" });
         }
 
+        //check if all filters are false
+         if (has_car === false && wants_car === false && wants_uber === false) {
+            return res.status(400).json({ error: "At least one filter must be true." });
+        }
+
         
 
         //check if location is valid
