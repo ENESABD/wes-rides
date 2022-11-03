@@ -16,7 +16,7 @@ module.exports = function(req, res, next) {
     secret = process.env.jwtSecret;
   }
 
-
+  
   //Check if there is a jwt
   if (!token) {
     return res.status(401).json({ error: "No jwt" });

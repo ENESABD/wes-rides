@@ -8,6 +8,16 @@ module.exports = function(req, res, next) {
     if (![email, password].every(Boolean)) {
       return res.status(400).json({ error: "Missing credentials"});
     }
+
+    //check if email is a valid email
+    if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
+      return res.status(400).json({ error: "Invalid email"});
+    } 
+
+    //check if email is a Wes email
+    if (email.substr(-13) !== "@wesleyan.edu"){
+      return res.status(400).json({ error: "Email must be a Wesleyan email"});
+    }  
   }
 
 
@@ -50,21 +60,9 @@ module.exports = function(req, res, next) {
       if (!(/^\d+$/.test(phone))) {
         return res.status(400).json({ error: "Phone number must contain only numbers"});
       } else if (phone.length !== 10){
-        return res.status(400).json({ error: "Phone number must contain exactly 10 digits and must be in a string format"});
+        return res.status(400).json({ error: "Phone number must contain exactly 10 digits"}); //and must be in a string format
       }
     }
-  }
-  
-  
-  //check if email is a Wes email (for the /user route, email is optional)
-  if (email) {
-    if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))) {
-      return res.status(400).json({ error: "Invalid email"});
-    } 
-
-    if (email.substr(-13) !== "@wesleyan.edu"){
-      return res.status(400).json({ error: "Email must be a Wesleyan email"});
-    }  
   }
 
   //check if the remaining values are too long

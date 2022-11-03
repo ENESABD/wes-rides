@@ -1,5 +1,7 @@
 const router = require("express").Router();
 
+require("dotenv").config();
+
 const bcrypt = require("bcrypt");
 
 const pool = require("../db");
@@ -49,7 +51,7 @@ router.put("/", [validUserInfo, authorize], async (req, res) => {
     try {
         
         //capture any entered attributes
-        const { name, email, phone, facebook, instagram, snapchat, password } = req.body;
+        const { name, phone, facebook, instagram, snapchat, password } = req.body;
 
         if (password || password === null || password === "") {
             return res.status(400).json({ error: "password cannot be changed here; no updates were made" })
@@ -66,35 +68,28 @@ router.put("/", [validUserInfo, authorize], async (req, res) => {
             );
         }
 
-        if (email) {
-            user_attribute = await pool.query(
-                "UPDATE users SET user_email = $1 WHERE user_id = $2",
-                [email, req.user.id]
-            );
-        }
-
-        if (phone || phone === null) {
+        if (phone || phone === null || phone === "") {
             user_attribute = await pool.query(
                 "UPDATE users SET user_phone_number = $1 WHERE user_id = $2",
                 [phone, req.user.id]
             );
         }
 
-        if (facebook || facebook === null) {
+        if (facebook || facebook === null || facebook === "") {
             user_attribute = await pool.query(
                 "UPDATE users SET user_facebook = $1 WHERE user_id = $2",
                 [facebook.trim(), req.user.id]
             );
         }
 
-        if (instagram || instagram === null) {
+        if (instagram || instagram === null || instagram === "") {
             user_attribute = await pool.query(
                 "UPDATE users SET user_instagram = $1 WHERE user_id = $2",
                 [instagram.trim(), req.user.id]
             );
         }
 
-        if (snapchat || snapchat === null) {
+        if (snapchat || snapchat === null || snapchat === "") {
             user_attribute = await pool.query(
                 "UPDATE users SET user_snapchat = $1 WHERE user_id = $2",
                 [snapchat.trim(), req.user.id]
@@ -113,8 +108,9 @@ router.put("/", [validUserInfo, authorize], async (req, res) => {
         }
 
         //return a success status
-        return res.status(204).send();
+        return res.status(200).json({ success: true });
     } catch (err) {
+        console.log(err.message);
         if (err.message.substr(0,46) === "duplicate key value violates unique constraint") {
             return res.status(409).json({ error: "This email or phone number is already being used by another user"});
         }
@@ -128,11 +124,11 @@ router.put("/password-update", [authorize], async (req, res) => {
     try {
 
         //capture entered attributes
-        const { old_password, new_password } = req.body;
+        const { old_password, password } = req.body;
 
 
         //check if the required arguments have been provided
-        if (!new_password || !old_password) {
+        if (!password || !old_password) {
             return res.status(400).json( { error: "Missing information"});
         }
         
@@ -164,18 +160,18 @@ router.put("/password-update", [authorize], async (req, res) => {
 
 
         //check if the new password contains at least 6 and at most 32 characters
-        if (new_password.length < 6) {
+        if (password.length < 6) {
             return res.status(400).json({ error: "Password must consist of at least 6 characters"});
         }
 
-        if (new_password.length > 32) {
+        if (password.length > 32) {
             return res.status(400).json({ error: "Password must consist of at most 32 characters"});
         }
 
 
         //hash the new password
         const salt = await bcrypt.genSalt(10);
-        const bcryptPassword = await bcrypt.hash(new_password, salt);
+        const bcryptPassword = await bcrypt.hash(password, salt);
 
 
         //update password
@@ -192,7 +188,7 @@ router.put("/password-update", [authorize], async (req, res) => {
 
 
         //return a success status
-        return res.status(204).send();
+        return res.status(200).json({ success: true});
 
     } catch (err) {
         return res.status(500).json({ error: "Server error" });
@@ -205,28 +201,28 @@ router.put("/password-reset", [authorizePasswordReset], async (req, res) => {
     try {
 
         //capture entered attribute
-        const { new_password } = req.body;
+        const { password } = req.body;
 
 
         //check if the required argument has been provided
-        if (!new_password) {
+        if (!password) {
             return res.status(400).json( { error: "Missing information"});
         }
         
 
         //check if the new password contains at least 6 and at most 32 characters
-        if (new_password.length < 6) {
+        if (password.length < 6) {
             return res.status(400).json({ error: "Password must consist of at least 6 characters"});
         }
 
-        if (new_password.length > 32) {
+        if (password.length > 32) {
             return res.status(400).json({ error: "Password must consist of at most 32 characters"});
         }
 
 
         //hash the new password
         const salt = await bcrypt.genSalt(10);
-        const bcryptPassword = await bcrypt.hash(new_password, salt);
+        const bcryptPassword = await bcrypt.hash(password, salt);
 
 
         //update password
@@ -243,7 +239,7 @@ router.put("/password-reset", [authorizePasswordReset], async (req, res) => {
 
 
         //return a success status
-        return res.status(204).send();
+        return res.status(200).json({success: true});
 
     } catch (err) {
         return res.status(500).json({ error: "Server error" });
@@ -283,7 +279,7 @@ router.get("/email-verification/:token", authorize, async (req, res) => {
         }
         
         //redirect to a success page
-        return res.redirect("https://google.com")
+        return res.redirect(`${process.env.CLIENT_HOST}/login`);
 
     } catch (err) {
         return res.status(500).json({ error: "Server error" });

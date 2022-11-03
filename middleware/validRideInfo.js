@@ -57,7 +57,7 @@ module.exports = function(req, res, next) {
             (start_date[3] === '0' && start_date[4] === '0')  ||
             (start_date[3] !== '0' && start_date[3] !== '1' && start_date[3] !== '2' && start_date[3] !== '3'))) {
 
-                return res.status(400).json({ error: "Start date must be in mm-dd-yy format" });
+                return res.status(400).json({ error: "Please enter a valid start date in mm-dd-yy format" });
             }
         
         if ((end_date && (start_date !== end_date)) &&
@@ -69,7 +69,7 @@ module.exports = function(req, res, next) {
             (end_date[3] === '0' && end_date[4] === '0')  ||
             (end_date[3] !== '0' && end_date[3] !== '1' && end_date[3] !== '2' && end_date[3] !== '3'))) {
 
-                return res.status(400).json({ error: "End date must be in mm-dd-yy format" });
+                return res.status(400).json({ error: "Please enter a valid end date in mm-dd-yy format" });
             }
         
         

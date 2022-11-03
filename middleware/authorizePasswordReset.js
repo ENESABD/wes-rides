@@ -44,6 +44,6 @@ module.exports = async function(req, res, next) {
         next();
     } catch (err) {
         console.log(err.message);
-        return res.status(401).json({ error: "Jwt is not valid" });
+        return res.status(401).json({ error: "Invalid token" });
     }
 }

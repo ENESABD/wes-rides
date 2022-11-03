@@ -77,8 +77,8 @@ router.post("/register", validUserInfo, async (req, res) => {
     tokenSender(email, jwToken, false);
 
 
-    //return jwt
-    return res.status(201).json({ message: "A verification link has been emailed." });
+    //return a success message
+    return res.status(201).json({ success: true });
 
   } catch (err) {
     if (err.message === "data must be a string or Buffer and salt must either be a salt string or a number of rounds") {
@@ -202,11 +202,11 @@ router.post("/forgot-password", async (req, res) => {
 
 
     //send a message
-    return res.status(200).json({ message: "The password reset link has been emailed." });
+    return res.status(200).json({ success: true });
 
   } catch (err) {
     console.log(err.message);
-    return res.status(500).json({ error: "Server error 1", also: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 

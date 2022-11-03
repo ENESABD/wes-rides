@@ -65,7 +65,8 @@ router.post("/", authorize, async (req, res) => {
 
 
         //return success code
-        return res.status(200).json({ ride_interest_id: new_ride_interest.rows[0].ride_interest_id });
+        //return res.status(200).json({ ride_interest_id: new_ride_interest.rows[0].ride_interest_id });
+        return res.status(200).json({ success: true });
 
     } catch (err) {
         console.log(err.message);
@@ -104,7 +105,7 @@ router.get("/:id", authorize, async (req, res) => {
 
 
         //return ride interest details
-        return res.status(200).json({ ride_interest_details: ride_interest_details.rows[0] });
+        return res.status(200).json(ride_interest_details.rows[0]);
 
     } catch (err) {
         console.error(err.message);
@@ -124,7 +125,7 @@ router.get("/", authorize, async (req, res) => {
         let ride_interests;
 
         ride_interests = await pool.query(
-            "SELECT ride_interest_id, ride_interests.status, location, start_date, end_date FROM ride_interests " + 
+            "SELECT ride_interests.ride_id, ride_interests.status, location, start_date, end_date FROM ride_interests " + 
             "LEFT JOIN rides ON ride_interests.ride_id = rides.ride_id " +
             "WHERE ride_interests.user_id = $1 ORDER BY ride_interests.status ASC",
             [req.user.id]
@@ -272,12 +273,12 @@ router.put("/:id", authorize, async (req, res) => {
         
 
         //return a success status
-        return res.status(201).send();
+        return res.status(200).send({ success: true });
 
     } catch (err) {
         console.log(err.message);
         if (err.message.substr(0, 37) === "invalid input syntax for type integer") {
-            return res.status(400).json({ error: "Invalid ride ID" });
+            return res.status(400).json({ error: "Invalid ride interest ID" });
         }
         return res.status(500).json({ error: "Server error" });
     }
@@ -330,7 +331,7 @@ router.delete("/:id", authorize, async (req, res) => {
 
         
         //return success status
-        return res.status(204).json();
+        return res.status(200).json({ success: true });
 
     } catch (err) {
         if (err.message.substr(0, 37) === "invalid input syntax for type integer") {

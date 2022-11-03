@@ -94,13 +94,13 @@ router.get("/", authorize, async (req, res) => {
 
         //all filters are false
         if (!rides) {
-            return res.status(200).json({ rides: [] });
+            return res.status(404).json({ error: "Please make at least one filter true" });
         }
 
         
         //check if there were any results for the filters
         if (rides.rows.length === 0) {
-            return res.status(404).json({ error: "No rides satisfying the filters" });
+            return res.status(404).json({ error: "No rides satisfying the query" });
         }
 
 
@@ -181,10 +181,10 @@ router.get("/:id", authorize, async (req, res) => {
 
             //add associated ride interests to the object to be returned
             ride.associated_ride_interests = ride_interests;
-
+            ride.request_made_by_owner = true;
 
             //return ride details object
-            return res.status(200).json({ ride_details: ride });
+            return res.status(200).json(ride);
 
         }
 
@@ -195,7 +195,7 @@ router.get("/:id", authorize, async (req, res) => {
         //get ride details with ride owner's info for rides that are pending and awaiting_confirmation
         ride = await pool.query(
             "SELECT " + parameters + 
-                " user_name, user_email, user_phone_number, user_instagram, user_facebook, user_snapchat " +
+                ", user_name, user_email, user_phone_number, user_instagram, user_facebook, user_snapchat " +
                 "FROM rides INNER JOIN users ON rides.user_id = users.user_id " +
                 "WHERE ride_id = $1 AND (status = $2 OR status = $3)",
             [id, "pending", "awaiting_confirmation"]
@@ -246,10 +246,11 @@ router.get("/:id", authorize, async (req, res) => {
         ride_interest = ride_interest.rows[0] || {ride_interest_id: null, status: null};
         ride.ride_interest_id = ride_interest.ride_interest_id;
         ride.ride_interest_status = ride_interest.status;
+        ride.request_made_by_owner = false;
 
 
         //return the ride details
-        return res.status(200).json({ ride_details: ride});
+        return res.status(200).json(ride);
         
     } catch (err) {
         console.log(err.message);
@@ -410,7 +411,7 @@ router.put("/:id", [authorize, validRideInfo], async (req, res) => {
             );
         }
 
-        if (additional_comments || additional_comments === null) {
+        if (additional_comments || additional_comments === null || additional_comments === "") {
             ride = await pool.query(
                 head + "additional_comments = $1" + tail,
                 [additional_comments.trim(), id, req.user.id]
@@ -431,7 +432,7 @@ router.put("/:id", [authorize, validRideInfo], async (req, res) => {
 
 
         //return a success status
-        return res.status(204).send();
+        return res.status(200).json({ success: true });
 
     } catch (err) {
         console.log(err.message);
@@ -486,7 +487,7 @@ router.delete("/:id", authorize, async (req, res) => {
         );
     
         //send a success status
-        return res.status(204).send();
+        return res.status(200).json({ success: true });
 
     } catch (err) {
         console.log(err.message);
