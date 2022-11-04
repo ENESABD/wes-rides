@@ -4,7 +4,7 @@ const emailSender = require('./emailSender');
 
 function tokenSender(userEmail, token, isPasswordChange) {
 
-    const domain = 'http://192.168.0.3:8000';
+    const domain = process.env.SERVER_HOST || 'http://192.168.0.3:8000';
     let emailText;
     let emailSubject;
 
