@@ -30,13 +30,13 @@ CREATE TABLE rides(
   FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
-CREATE TYPE RIDE_INTEREST_STATUS AS ENUM ('awaiting_confirmation', 'accepted', 'rejected');
+CREATE TYPE RIDE_INTEREST_STATUS AS ENUM ('awaiting_owner_decision', 'accepted', 'rejected');
 
 CREATE TABLE ride_interests(
   ride_interest_id SERIAL,
   ride_id SERIAL,
   user_id UUID,
-  status RIDE_INTEREST_STATUS DEFAULT 'awaiting_confirmation',
+  status RIDE_INTEREST_STATUS DEFAULT 'awaiting_owner_decision',
   PRIMARY KEY (ride_interest_id),
   FOREIGN KEY (user_id) REFERENCES users(user_id),
   FOREIGN KEY (ride_id) REFERENCES rides(ride_id)

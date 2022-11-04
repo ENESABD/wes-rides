@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-require("dotenv").config();
+//require("dotenv").config();
 
 const bcrypt = require("bcrypt");
 

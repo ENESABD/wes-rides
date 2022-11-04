@@ -1,5 +1,5 @@
 const emailSender = require('./emailSender');
-require("dotenv").config();
+//require("dotenv").config();
 
 
 function tokenSender(userEmail, token, isPasswordChange) {

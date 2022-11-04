@@ -191,7 +191,7 @@ router.put("/:id", authorize, async (req, res) => {
 
         
         //check if it is awaiting confirmation
-        if (ride_interest.rows[0].status !== "awaiting_confirmation") {
+        if (ride_interest.rows[0].status !== "awaiting_owner_decision") {
             return res.status(400).json({ error: "This ride interest has already been accepted or rejected"});
         }
 
@@ -209,7 +209,7 @@ router.put("/:id", authorize, async (req, res) => {
             //check if ride status should change from awaiting_confirmation to pending
             const other_ride_interests = await pool.query(
                 "SELECT * FROM ride_interests WHERE ride_id = $1 AND status = $2",
-                [ride_interest.rows[0].ride_id, "awaiting_confirmation"]
+                [ride_interest.rows[0].ride_id, "awaiting_owner_decision"]
             );
 
             if (other_ride_interests.rows.length === 1) {
@@ -237,7 +237,7 @@ router.put("/:id", authorize, async (req, res) => {
             //notify the rejected ones
             let rejectedOnes = await pool.query(
                 "SELECT user_id FROM ride_interests WHERE status = $1 AND ride_id = $2 AND ride_interest_id <> $3",
-                ["awaiting_confirmation", ride_interest.rows[0].ride_id, id]
+                ["awaiting_owner_decision", ride_interest.rows[0].ride_id, id]
             );
             
             let rejectedEmail;
@@ -304,7 +304,7 @@ router.delete("/:id", authorize, async (req, res) => {
 
 
         //check if status is accepted or rejected
-        if (ride_interest.rows[0].status !== "awaiting_confirmation") {
+        if (ride_interest.rows[0].status !== "awaiting_owner_decision") {
             return res.status(404).json({ error: "This ride interest has been accepted or rejected and thus cannot be deleted"});
         }
 
