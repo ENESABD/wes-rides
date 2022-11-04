@@ -11,7 +11,7 @@ function tokenSender(userEmail, token, isPasswordChange) {
     if (isPasswordChange) {
         emailSubject = 'WesRides | Password Change Request'
         emailText = `Hi, We received your request to change your password. 
-                Please click on this link: ${process.env.CLIENT_HOST}/password-reset/#/${token} .
+                Please click on this link: ${process.env.CLIENT_HOST}/#/password-reset/${token} .
                 Thanks!`;
     } else {
         emailSubject = 'WesRides | Email Verification'
