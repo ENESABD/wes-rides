@@ -279,7 +279,7 @@ router.get("/email-verification/:token", authorize, async (req, res) => {
         }
         
         //redirect to a success page
-        return res.redirect(`${process.env.CLIENT_HOST}/login`);
+        return res.redirect(`${process.env.CLIENT_HOST}/#/login`);
 
     } catch (err) {
         return res.status(500).json({ error: "Server error" });
