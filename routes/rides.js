@@ -94,7 +94,7 @@ router.get("/", authorize, async (req, res) => {
 
         //all filters are false
         if (!rides) {
-            return res.status(404).json({ error: "Please make at least one filter true" });
+            return res.status(404).json({ error: "Please select at least one filter" });
         }
 
         
